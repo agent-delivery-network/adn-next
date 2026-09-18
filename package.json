@@ -1,0 +1,33 @@
+{
+  "name": "@adn/next",
+  "version": "0.1.0",
+  "description": "Fail-open Next.js middleware that forwards document requests to the ADN gateway.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agent-delivery-network/adn-next.git"
+  },
+  "homepage": "https://github.com/agent-delivery-network/adn-next",
+  "bugs": {
+    "url": "https://github.com/agent-delivery-network/adn-next/issues"
+  },
+  "keywords": [
+    "adn",
+    "agent-delivery-network",
+    "nextjs",
+    "middleware",
+    "vercel",
+    "ai-agents"
+  ],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
