@@ -1,5 +1,5 @@
 /** Paths that should never enter the render pipeline (Week 3 guardrails). */
-const DEFAULT_BYPASS_PREFIXES = [
+export const DEFAULT_BYPASS_PREFIXES = [
   "/api/",
   "/_next/",
   "/static/",
@@ -13,7 +13,7 @@ const DEFAULT_BYPASS_PREFIXES = [
   "/account",
 ] as const;
 
-const DEFAULT_BYPASS_EXTENSIONS = [
+export const DEFAULT_BYPASS_EXTENSIONS = [
   ".js",
   ".css",
   ".map",

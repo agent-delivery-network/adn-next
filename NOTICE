@@ -1,10 +1,13 @@
 Copyright Snap Sourcer Limited, trading as ADN (Agent Delivery Network).
 
-This repository is the public, reviewable source for the @adn/next edge connector.
+This repository is the public, reviewable source for the @agent-delivery-network/next edge connector.
 It is published so customers and security teams can read the code that runs on
 their origin. The ADN gateway, classifier, dashboard, and billing systems are
 not included.
 
-Install the published package from npm (`npm install @adn/next`). Do not treat
+Install the published package from npm (`npm install @agent-delivery-network/next`). Do not treat
 this tree as a second publish source of truth — versions are cut from the ADN
 monorepo and mirrored here for review.
+
+Pull requests are proposals. Do not merge them onto main; inclusion requires
+approval from Tim Dew (GitHub: Timbot-42) and a port into the private monorepo.

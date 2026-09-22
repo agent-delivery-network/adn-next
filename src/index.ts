@@ -27,7 +27,7 @@ function continueToOrigin(): Response {
 export function createAdnMiddleware(config: AdnMiddlewareConfig) {
   if (!isSafeGatewayUrl(config.gatewayUrl)) {
     throw new Error(
-      "@adn/next: gatewayUrl must be HTTPS (http://localhost is allowed for development).",
+      "@agent-delivery-network/next: gatewayUrl must be HTTPS (http://localhost is allowed for development).",
     );
   }
 

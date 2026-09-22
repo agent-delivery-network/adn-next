@@ -11,7 +11,7 @@ export const ADN_SHIM_PATH_HEADER = "x-adn-shim-path";
 export const ADN_SHIM_FORMAT_HEADER = "x-adn-shim-format";
 
 /** Version baked into generated Cloudflare Snippets and Next.js middleware. */
-export const SHIM_VERSION = "2026.09.19";
+export const SHIM_VERSION = "2026.09.21";
 
 /** Sent on shim forwards so the gateway can record the installed connector version. */
 export const ADN_SHIM_VERSION_HEADER = "x-adn-shim-version";

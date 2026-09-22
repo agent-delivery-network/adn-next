@@ -1,0 +1,40 @@
+name: Inbound proposal
+
+# Comment-only. Do not check out the pull request.
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  explain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = "<!-- adn-next-inbound-pr -->";
+            const body = `${marker}
+            Thanks for the pull request.
+
+            **This repository is a mirror.** \`main\` is overwritten by a sync from the private ADN monorepo. Please do **not** merge this PR here — that would not publish to npm and the next sync would drop it.
+
+            Pull requests are **proposals**. Inclusion needs explicit approval from [@Timbot-42](https://github.com/Timbot-42) (Tim Dew). If approved, the change is ported into the private repo, reviewed again there, and the next sync updates this tree.
+
+            See [CONTRIBUTING.md](https://github.com/agent-delivery-network/adn-next/blob/main/CONTRIBUTING.md).
+            `;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            if (comments.some((c) => c.body?.includes(marker))) return;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

@@ -1,6 +1,6 @@
 {
-  "name": "@adn/next",
-  "version": "0.1.0",
+  "name": "@agent-delivery-network/next",
+  "version": "0.1.1",
   "description": "Fail-open Next.js middleware that forwards document requests to the ADN gateway.",
   "type": "module",
   "sideEffects": false,
