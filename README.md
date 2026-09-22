@@ -25,6 +25,15 @@ export function middleware(request: Request) {
 export { config };
 ```
 
+Set these in the host environment (Vercel project env, or `.env.local`):
+
+```bash
+ADN_GATEWAY_URL=https://gateway.agent-delivery.network
+ADN_SITE_TOKEN=<your-site-token>
+```
+
+`ADN_GATEWAY_URL` is the ADN worker, not `https://agents.yourdomain.com`. The connector sends `x-adn-host` from the incoming request hostname — do not set `ADN_HOST`.
+
 Keep `config.matcher` restrictive. Vercel bills middleware as Edge Requests.
 
 ## Fail-open contract
