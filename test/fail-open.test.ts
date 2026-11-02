@@ -304,6 +304,29 @@ describe("handleShimRequest fail-open", () => {
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 
+  it("forwards internal crawl signature headers while stripping user Authorization", async () => {
+    const request = new Request("https://customer.com/page", {
+      headers: {
+        "user-agent": "ADN-Corpus/1.0",
+        cookie: "session=super-secret",
+        authorization: "Bearer user-jwt",
+        "x-adn-internal-crawl-ts": "1700000000",
+        "x-adn-internal-crawl-signature": "a".repeat(64),
+      },
+    });
+    const fetchOrigin = vi.fn();
+    vi.mocked(fetch).mockResolvedValue(
+      new Response("# Hello", { status: 200, headers: { "content-type": "text/markdown" } }),
+    );
+
+    await handleShimRequest(request, config, fetchOrigin);
+
+    const forwarded = vi.mocked(fetch).mock.calls[0]?.[0] as Request;
+    expect(forwarded.headers.get("authorization")).toBeNull();
+    expect(forwarded.headers.get("x-adn-internal-crawl-ts")).toBe("1700000000");
+    expect(forwarded.headers.get("x-adn-internal-crawl-signature")).toBe("a".repeat(64));
+  });
+
   it("strips cookies and authorization before forwarding to the gateway", async () => {
     const request = new Request("https://customer.com/page", {
       headers: {
