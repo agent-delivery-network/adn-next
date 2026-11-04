@@ -91,7 +91,8 @@ async function fetchGatewayWithTimeout(
 
 function isValidGatewayResponse(response: Response): boolean {
   if (response.headers.get(ADN_PASSTHROUGH_HEADER) === "1") return false;
-  if (!response.ok || response.status >= 500) return false;
+  if (response.status >= 500) return false;
+  if (response.status >= 400) return true;
   const ct = response.headers.get("content-type") ?? "";
   if (!ct) return false;
   if (response.headers.get("content-length") === "0") return false;

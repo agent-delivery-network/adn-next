@@ -6,6 +6,7 @@ import {
   isMachineTraffic,
   isSafeGatewayUrl,
   isShimForwardMethod,
+  isValidGatewayResponse,
   SHIM_VERSION,
   shouldForwardToGateway,
   wantsServedFormat,
@@ -176,6 +177,49 @@ describe("handleShimRequest fail-open", () => {
     await handleShimRequest(rsc, config, fetchOrigin);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
     expect(fetchOrigin).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns gateway 402 unchanged (status, headers, body)", async () => {
+    const request = makeRequest({ ua: "GPTBot/1.0" });
+    const fetchOrigin = vi.fn();
+    const paymentBody = JSON.stringify({ error: "payment_required" });
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(paymentBody, {
+        status: 402,
+        headers: {
+          "content-type": "application/json",
+          "payment-required": "eyJ0ZXN0IjoxfQ==",
+        },
+      }),
+    );
+
+    const response = await handleShimRequest(request, config, fetchOrigin);
+
+    expect(fetchOrigin).not.toHaveBeenCalled();
+    expect(response.status).toBe(402);
+    expect(response.headers.get("payment-required")).toBe("eyJ0ZXN0IjoxfQ==");
+    expect(await response.text()).toBe(paymentBody);
+  });
+
+  it("returns gateway 403 and 429 unchanged", async () => {
+    for (const status of [403, 429] as const) {
+      const request = makeRequest({ ua: "GPTBot/1.0" });
+      const fetchOrigin = vi.fn();
+      const body = `blocked-${status}`;
+      vi.mocked(fetch).mockResolvedValue(
+        new Response(body, {
+          status,
+          headers: { "content-type": "text/plain", "retry-after": "60" },
+        }),
+      );
+
+      const response = await handleShimRequest(request, config, fetchOrigin);
+
+      expect(fetchOrigin).not.toHaveBeenCalled();
+      expect(response.status).toBe(status);
+      expect(response.headers.get("retry-after")).toBe("60");
+      expect(await response.text()).toBe(body);
+    }
   });
 
   it("fail-opens to origin when gateway returns 500", async () => {
@@ -415,6 +459,22 @@ describe("handleShimRequest fail-open", () => {
     expect(fetchOrigin).toHaveBeenCalledWith(request);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
     expect(await response.text()).toBe("origin");
+  });
+});
+
+describe("isValidGatewayResponse", () => {
+  it("treats gateway 4xx as valid but 5xx as invalid", () => {
+    expect(
+      isValidGatewayResponse(
+        new Response("pay", { status: 402, headers: { "content-type": "application/json" } }),
+      ),
+    ).toBe(true);
+    expect(isValidGatewayResponse(new Response("no", { status: 500 }))).toBe(false);
+    expect(
+      isValidGatewayResponse(
+        new Response(null, { status: 204, headers: { "x-adn-passthrough": "1" } }),
+      ),
+    ).toBe(false);
   });
 });
 
