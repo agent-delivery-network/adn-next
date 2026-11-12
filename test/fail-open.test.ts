@@ -463,6 +463,28 @@ describe("handleShimRequest fail-open", () => {
 });
 
 describe("isValidGatewayResponse", () => {
+  it("treats 401 and 403 as invalid for browser requests", () => {
+    const browser = makeRequest({ ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X)" });
+    expect(
+      isValidGatewayResponse(
+        new Response("invalid token", { status: 401, headers: { "content-type": "text/plain" } }),
+        browser,
+      ),
+    ).toBe(false);
+    expect(
+      isValidGatewayResponse(
+        new Response("forbidden", { status: 403, headers: { "content-type": "text/plain" } }),
+        browser,
+      ),
+    ).toBe(false);
+    expect(
+      isValidGatewayResponse(
+        new Response("invalid token", { status: 401, headers: { "content-type": "text/plain" } }),
+        makeRequest({ ua: "GPTBot/1.0" }),
+      ),
+    ).toBe(true);
+  });
+
   it("treats gateway 4xx as valid but 5xx as invalid", () => {
     expect(
       isValidGatewayResponse(

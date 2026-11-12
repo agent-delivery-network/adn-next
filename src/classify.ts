@@ -54,6 +54,15 @@ export function isMachineTraffic(ctx: ShimRequestContext): boolean {
   return false;
 }
 
+/** Heuristic for human browser traffic when the gateway returns auth errors (invalid token, etc.). */
+export function isLikelyBrowserRequest(request: Request): boolean {
+  if (isMachineTraffic(extractShimContext(request))) return false;
+  const ua = request.headers.get("user-agent") ?? "";
+  if (!ua) return false;
+  if (/\bbot\b/i.test(ua)) return false;
+  return /Mozilla\/\d/i.test(ua);
+}
+
 /** Visitor asked for Markdown / DocLang / JSON-LD — serve that format via the gateway. */
 export function wantsServedFormat(ctx: ShimRequestContext): boolean {
   return wantsShimAlternateFormat(ctx.pathname, ctx.accept || null);

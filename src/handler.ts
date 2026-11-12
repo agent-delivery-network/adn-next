@@ -9,7 +9,12 @@ import {
   SHIM_VERSION,
 } from "./constants.js";
 import { isBypassPath } from "./bypass-path.js";
-import { isFrameworkInternalRequest, isShimForwardMethod } from "./classify.js";
+import {
+  extractShimContext,
+  isFrameworkInternalRequest,
+  isLikelyBrowserRequest,
+  isShimForwardMethod,
+} from "./classify.js";
 
 export interface ShimConfig {
   gatewayUrl: string;
@@ -89,9 +94,12 @@ async function fetchGatewayWithTimeout(
   }
 }
 
-function isValidGatewayResponse(response: Response): boolean {
+function isValidGatewayResponse(response: Response, request?: Request): boolean {
   if (response.headers.get(ADN_PASSTHROUGH_HEADER) === "1") return false;
   if (response.status >= 500) return false;
+  if (request && (response.status === 401 || response.status === 403) && isLikelyBrowserRequest(request)) {
+    return false;
+  }
   if (response.status >= 400) return true;
   const ct = response.headers.get("content-type") ?? "";
   if (!ct) return false;
@@ -138,7 +146,7 @@ export async function handleShimRequest(
     }
 
     const gatewayResponse = await fetchGatewayWithTimeout(request, config);
-    if (isValidGatewayResponse(gatewayResponse)) {
+    if (isValidGatewayResponse(gatewayResponse, request)) {
       return sanitizeGatewayResponse(gatewayResponse);
     }
 
