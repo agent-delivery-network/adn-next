@@ -1,4 +1,5 @@
 import {
+  fetchShimRemoteConfig,
   handleShimRequest,
   isSafeGatewayUrl,
   NEXT_MIDDLEWARE_MATCHER_CONFIG as SHARED_MATCHER_CONFIG,
@@ -38,7 +39,34 @@ export function createAdnMiddleware(config: AdnMiddlewareConfig) {
   };
 
   return async function adnMiddleware(request: Request): Promise<Response> {
-    return handleShimRequest(request, shimConfig, () => continueToOrigin());
+    const url = new URL(request.url);
+    const passthrough = await handleShimRequest(request, shimConfig, () => continueToOrigin());
+    if (passthrough.headers.get("x-middleware-next") !== "1") {
+      return passthrough;
+    }
+    const accept = request.headers.get("accept") ?? "";
+    if (!accept.includes("text/html")) {
+      return passthrough;
+    }
+    try {
+      const remote = await fetchShimRemoteConfig({
+        gatewayUrl: shimConfig.gatewayUrl,
+        siteToken: shimConfig.siteToken,
+        siteHost: url.hostname,
+      });
+      const discovery = remote?.agentDiscovery;
+      const linkValue =
+        discovery && discovery.linkHeaderEnabled !== false && discovery.mcpUrl
+          ? `<${discovery.mcpUrl}>; rel="mcp"`
+          : null;
+      if (!linkValue) return passthrough;
+      const headers = new Headers(passthrough.headers);
+      const existing = headers.get("link");
+      headers.set("link", existing ? `${existing}, ${linkValue}` : linkValue);
+      return new Response(null, { status: 200, headers });
+    } catch {
+      return passthrough;
+    }
   };
 }
 
